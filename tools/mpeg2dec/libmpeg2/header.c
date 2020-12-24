@@ -645,9 +645,10 @@ static int picture_coding_ext (mpeg2dec_t * mpeg2dec)
     picture->flags = flags;
 
     mpeg2dec->ext_state = PIC_DISPLAY_EXT | COPYRIGHT_EXT | QUANT_MATRIX_EXT;
-    printf("PROGRESSIVE: %d\n", buffer[4] & 0x80);
-    printf("TOP_FIELD_FIRST: %d\n", buffer[3] & 128);
-    printf("REPEAT_FIRST_FRAME: %d\n", buffer[3] & 2);
+    printf("PROGRESSIVE: %d\n", (flags & PIC_FLAG_PROGRESSIVE_FRAME) != 0);
+    printf("TOP_FIELD_FIRST: %d\n", (flags & PIC_FLAG_TOP_FIELD_FIRST) != 0);
+    printf("REPEAT_FIRST_FRAME: %d\n",(flags & PIC_FLAG_REPEAT_FIRST_FIELD) != 0);
+    printf("\n");
 
     return 0;
 }
