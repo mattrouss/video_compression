@@ -2,6 +2,8 @@ import os
 import time
 import argparse
 
+from tqdm import tqdm
+
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
@@ -45,6 +47,11 @@ def write_ppm(img, file_path):
 
 def main(args):
     input_path = args.input_path
+    output_path = args.output_path
+    if not args.disp and not os.path.isdir(output_path):
+        print(f"Error: could not find output path: {output_path}")
+        return
+
     filenames = os.listdir(input_path)
     sorted_filenames = sorted(filenames, key=lambda x: int(x.split('.')[0]))
 
@@ -56,10 +63,12 @@ def main(args):
 
         frames.append(rgb)
 
-    for frame in frames:
-
-        cv2.imshow("Image", cv2.cvtColor(frame, cv2.COLOR_RGB2BGR))
-        time.sleep(1 / args.fps)
+    for i, frame in enumerate(tqdm(frames)):
+        if args.disp:
+            cv2.imshow("Image", cv2.cvtColor(frame, cv2.COLOR_RGB2BGR))
+            time.sleep(1 / args.fps)
+        else:
+            write_ppm(frame, f'{output_path}/{i}.ppm')
 
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
