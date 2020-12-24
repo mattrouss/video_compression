@@ -44,6 +44,17 @@ def write_ppm(img, file_path):
         f.write(bytearray(ppm_header, 'ascii'))
         img.tofile(f)
 
+def bob(img, top_field_first=True):
+    img_a = np.zeros(img.shape, dtype=np.uint8)
+    img_b = np.zeros(img.shape, dtype=np.uint8)
+
+    img_a[0::2, :, :] = img[int(not top_field_first)::2, :, :]
+    img_a[1::2, :, :] = img[int(not top_field_first)::2, :, :]
+    img_b[0::2, :, :] = img[int(top_field_first)::2, :, :]
+    img_b[1::2, :, :] = img[int(top_field_first)::2, :, :]
+
+    return img_a, img_b
+
 
 def main(args):
     input_path = args.input_path
@@ -60,9 +71,14 @@ def main(args):
     for frame_path in sorted_filenames:
         yuv = read_pgm(f'{input_path}/{frame_path}')
         rgb = yuv_to_rgb(yuv)
+        if args.progressive:
+            frames.append(rgb)
+        else:
+            img_a, img_b = bob(rgb, bool(args.top_field_first))
+            frames.append(img_a)
+            frames.append(img_b)
 
-        frames.append(rgb)
-
+    # Display / Save frames
     for i, frame in enumerate(tqdm(frames)):
         if args.disp:
             cv2.imshow("Image", cv2.cvtColor(frame, cv2.COLOR_RGB2BGR))
@@ -80,7 +96,9 @@ if __name__ == '__main__':
     parser.add_argument("--input-path", required=True)
     parser.add_argument("--output-path")
     parser.add_argument("--disp", action='store_true')
-    parser.add_argument("--fps", type=int, default=24)
+    parser.add_argument("--progressive", action='store_true')
+    parser.add_argument("--top-field-first", type=int, default=1)
+    parser.add_argument("--fps", type=int, default=25)
     args = parser.parse_args()
 
     main(args)
